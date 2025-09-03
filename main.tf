@@ -13,9 +13,9 @@ resource "azurerm_container_app_environment" "aca_env" {
   resource_group_name = data.azurerm_resource_group.main.name
 }
 
-resource "azurerm_resource_provider_registration" "app" {
-  name = "Microsoft.App"
-}
+# resource "azurerm_resource_provider_registration" "app" {
+#   name = "Microsoft.App"
+# }
 
 resource "azurerm_container_app" "aca" {
   name                         = "aca-ms-${local.idapp}-${var.environment}"
