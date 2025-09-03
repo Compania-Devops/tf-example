@@ -1,4 +1,4 @@
-name: Deploy Terraform en Azure
+name: Terraform Actions
 
 on:
   workflow_dispatch:
@@ -34,8 +34,8 @@ jobs:
         if: ${{ github.event.inputs.ambiente != 'dev' }}
         run: |
           echo "Copiando variables y backend para ${{ github.event.inputs.ambiente }}"
-          cp env/${{ github.event.inputs.ambiente }}/variables.tf ./variables.tf
-          cp env/${{ github.event.inputs.ambiente }}/backend.tf ./backend.tf
+          cp envs/${{ github.event.inputs.ambiente }}/variables.tf ./variables.tf
+          cp envs/${{ github.event.inputs.ambiente }}/backend.tf ./backend.tf
 
       - name: Login en Azure
         uses: azure/login@v2
@@ -59,14 +59,14 @@ jobs:
         run: |
           case "${{ github.event.inputs.accion }}" in
             "plan")
-              terraform plan -no-color
+              terraform plan
               ;;
             "plan+apply")
-              terraform plan -no-color
-              terraform apply -auto-approve -no-color
+              terraform plan
+              terraform apply -auto-approve
               ;;
             "destroy")
-              terraform destroy -auto-approve -no-color
+              terraform destroy -auto-approve
               ;;
           esac
         env:
