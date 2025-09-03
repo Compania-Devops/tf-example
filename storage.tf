@@ -1,36 +1,25 @@
-provider "azurerm" {
-  features {}
-
-  subscription_id = var.subscription_id
-  client_id       = var.client_id
-  client_secret   = var.client_secret
-  tenant_id       = var.tenant_id
-}
-variable "subscription_id" {
-  type = string
-}
-
-variable "client_id" {
-  type = string
-}
-
-variable "client_secret" {
-  type = string
-  sensitive = true
-}
-
-variable "tenant_id" {
-  type = string
-}
-
 terraform {
-  backend "azurerm" {
-    resource_group_name   = "rg-cicd-terraform-app-apellido" # Reemplazar por apellido
-    storage_account_name  = "tfstateapellido" # Reemplazar por apellido
-    container_name        = "tfstate"
-    key                   = "dev/terraform.tfstate"
+  required_providers {
+    azurerm = {
+      source  = "hashicorp/azurerm"
+      version = "~>4.0"
+    }
   }
 }
+
+provider "azurerm" {
+    features {}
+    subscription_id = "b6dd1983-a328-4ef9-aae9-b401b616479d"
+}
+
+# terraform {
+#   backend "azurerm" {
+#     resource_group_name   = "rg-cicd-terraform-app-apellido" # Reemplazar por apellido
+#     storage_account_name  = "tfstateapellido" # Reemplazar por apellido
+#     container_name        = "tfstate"
+#     key                   = "dev/terraform.tfstate"
+#   }
+# }
 
 variable "idapp" {
   description = "ID de la aplicación"
@@ -49,4 +38,3 @@ resource "azurerm_storage_account" "main" {
     account_tier             = "Standard"
     account_replication_type = "LRS"
 }
-
