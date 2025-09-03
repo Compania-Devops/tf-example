@@ -1,0 +1,76 @@
+name: Deploy Terraform en Azure
+
+on:
+  workflow_dispatch:
+    inputs:
+      ambiente:
+        description: "Selecciona el ambiente de despliegue"
+        required: true
+        default: "dev"
+        type: choice
+        options:
+          - dev
+          - qa
+          - prd
+      accion:
+        description: "Selecciona la acción de Terraform"
+        required: true
+        default: "plan"
+        type: choice
+        options:
+          - plan
+          - plan+apply
+          - destroy
+
+jobs:
+  terraform:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout del código
+        uses: actions/checkout@v4
+
+      - name: Configuración de ambiente (copiar tfvars y backend)
+        if: ${{ github.event.inputs.ambiente != 'dev' }}
+        run: |
+          echo "Copiando variables y backend para ${{ github.event.inputs.ambiente }}"
+          cp env/${{ github.event.inputs.ambiente }}/variables.tf ./variables.tf
+          cp env/${{ github.event.inputs.ambiente }}/backend.tf ./backend.tf
+
+      - name: Login en Azure
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Configurar Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.9.5
+
+      - name: Terraform Init
+        run: terraform init
+        env:
+          ARM_CLIENT_ID: ${{ fromJson(secrets.AZURE_CREDENTIALS).clientId }}
+          ARM_CLIENT_SECRET: ${{ fromJson(secrets.AZURE_CREDENTIALS).clientSecret }}
+          ARM_SUBSCRIPTION_ID: ${{ fromJson(secrets.AZURE_CREDENTIALS).subscriptionId }}
+          ARM_TENANT_ID: ${{ fromJson(secrets.AZURE_CREDENTIALS).tenantId }}
+
+      - name: Ejecutar Terraform (según acción seleccionada)
+        run: |
+          case "${{ github.event.inputs.accion }}" in
+            "plan")
+              terraform plan -no-color
+              ;;
+            "plan+apply")
+              terraform plan -no-color
+              terraform apply -auto-approve -no-color
+              ;;
+            "destroy")
+              terraform destroy -auto-approve -no-color
+              ;;
+          esac
+        env:
+          ARM_CLIENT_ID: ${{ fromJson(secrets.AZURE_CREDENTIALS).clientId }}
+          ARM_CLIENT_SECRET: ${{ fromJson(secrets.AZURE_CREDENTIALS).clientSecret }}
+          ARM_SUBSCRIPTION_ID: ${{ fromJson(secrets.AZURE_CREDENTIALS).subscriptionId }}
+          ARM_TENANT_ID: ${{ fromJson(secrets.AZURE_CREDENTIALS).tenantId }}
